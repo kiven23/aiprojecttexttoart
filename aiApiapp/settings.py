@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken'
+
 
 ]
 DEFAULT_AUTHENTICATION_CLASSES = [
@@ -80,8 +82,14 @@ WSGI_APPLICATION = 'aiApiapp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'aidb',
+        'USER': 'root',
+        'PASSWORD': 'crawling23',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
