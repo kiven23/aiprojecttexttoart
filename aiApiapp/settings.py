@@ -92,8 +92,8 @@ DATABASES = {
         'NAME': 'aidb',
         'USER': 'root',
         'PASSWORD': 'crawling23',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'HOST': '8.tcp.ngrok.io',
+        'PORT': '19056',
     }
 }
 
