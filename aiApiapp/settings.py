@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-m&s8d0=i@x_ou=g0)1j6cnka!z)suoi-)vs@91*ee0vwzm0@g%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.tcp.ngrok.io']
+ALLOWED_HOSTS = ['0.tcp.ngrok.io','127.0.0.1','localhost']
 
 
 # Application definition
@@ -89,11 +89,12 @@ DATABASES = {
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': BASE_DIR / 'db.sqlite3',
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'aidb',
+        #'NAME': 'webportal_8',
+        'NAME': 'new_purchasingportal',
         'USER': 'root',
         'PASSWORD': 'crawling23',
-        'HOST': '8.tcp.ngrok.io',
-        'PORT': '19056',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
