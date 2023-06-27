@@ -5,3 +5,4 @@ gunicorn
 django-cors-headers
 django-guardian
 mysqlclient
+psycopg2
