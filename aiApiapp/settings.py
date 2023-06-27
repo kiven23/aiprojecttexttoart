@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-m&s8d0=i@x_ou=g0)1j6cnka!z)suoi-)vs@91*ee0vwzm0@g%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.tcp.ngrok.io','127.0.0.1','localhost']
+ALLOWED_HOSTS = ['0.tcp.ngrok.io','127.0.0.1','localhost','10.10.10.38']
 
 
 # Application definition
@@ -144,6 +144,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = [
     'https://127.0.0.1:8000',
     'http://127.0.0.1:8000',
-    'http://0.tcp.ngrok.io:14001'
+    'http://0.tcp.ngrok.io:14001',
+    'http://10.10.10.38:8000'
 ]
 AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend', 'guardian.backends.ObjectPermissionBackend')

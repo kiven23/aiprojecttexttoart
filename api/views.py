@@ -9,12 +9,20 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 import bcrypt
-
+import json
+import sys
+import os
+ 
+from datetime import datetime, date
 
 @api_view(['POST'])
 def hello_world(request):
     return JsonResponse({'message': 'Hello, world!'})
-
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        return json.JSONEncoder.default(self, obj)
 
 class UserLoginAPIView(APIView):
     def post(self, request):
@@ -74,8 +82,8 @@ class UserLoginAPIView(APIView):
                                                             )
                              user_id = user.id
                              updateuserData = connection.cursor()
-                             query = "UPDATE auth_user SET branch_id=%s,company_id=%s, extn_email1=%s, extn_email2=%s, extn_email3=%s WHERE id=%s"
-                             params = (branch_id, company_id, extn_email1, extn_email2, extn_email3, user_id)
+                             query = "UPDATE auth_user SET branch_id=%s,company_id=%s, extn_email1=%s, extn_email2=%s, extn_email3=%s, oldid=%s WHERE id=%s"
+                             params = (branch_id, company_id, extn_email1, extn_email2, extn_email3, row[0], user_id)
 
                              updateuserData.execute(query,params)
                              connection.commit()
@@ -115,19 +123,82 @@ class CreateUser(APIView):
 class Profile(APIView):
     def post(self, request):
         #getToken = request.data.get('headers').get('Authorization')
-        token = Token.objects.get(key='3a15140f9bf132ab1c53012f369f16bc824a407d')
+        token = Token.objects.get(key='d579b045a4f38e7cf534354fe10b763f7700764a')
         user_id = token.user.id
         with connection.cursor() as cursor:
-            cursor.execute(f"select * from auth_user where id= {user_id}")
-            user = cursor.fetchone()
-            branch_id = user[11]
-            companies_id = user[12]
-            cursor.execute(f"select * from branches where id= {branch_id}")
-            branch = cursor.fetchone()
-            cursor.execute(f"select * from companies where id= {companies_id}")
-            companies = cursor.fetchone()
-        return JsonResponse({'branch': branch, 'user': user, 'companies': companies})
 
+            #user
+            cursor.execute(f"select id,username,first_name,last_name,branch_id,company_id,oldid from auth_user where id= {user_id}")
+            columns = [col[0] for col in cursor.description]
+            rows = []
+            for row in cursor.fetchall():
+                rows.append(dict(zip(columns, row)))
+            json_data = json.dumps(rows, cls=DateTimeEncoder)
+            userData = json.loads(json_data)
+
+            #branch
+            cursor.execute(f"select * from branches where id= {userData[0]['branch_id']}")
+            columns = [col[0] for col in cursor.description]
+            rows = []
+            for row in cursor.fetchall():
+                rows.append(dict(zip(columns, row)))
+            json_data = json.dumps(rows, cls=DateTimeEncoder)
+            branchData = json.loads(json_data)
+
+            #company
+            cursor.execute(f"select * from companies where id= {userData[0]['company_id']}")
+            columns = [col[0] for col in cursor.description]
+            rows = []
+            for row in cursor.fetchall():
+                rows.append(dict(zip(columns, row)))
+            json_data = json.dumps(rows, cls=DateTimeEncoder)
+            companyData = json.loads(json_data)
+
+            #employment
+            cursor.execute(f"select * from user_employments where id= {userData[0]['oldid']}")
+            columns = [col[0] for col in cursor.description]
+            rows = []
+            for row in cursor.fetchall():
+                rows.append(dict(zip(columns, row)))
+            json_data = json.dumps(rows, cls=DateTimeEncoder)
+            employmentData = json.loads(json_data)
+
+            division_id = employmentData[0]['division_id']
+            department_id = employmentData[0]['department_id']
+
+            if division_id is None:
+                division_id = 4
+            if department_id is None:
+                department_id = 18
+
+
+            #division
+            cursor.execute(f"select * from divisions where id= { division_id }")
+            columns = [col[0] for col in cursor.description]
+            rows = []
+            for row in cursor.fetchall():
+                rows.append(dict(zip(columns, row)))
+            json_data = json.dumps(rows, cls=DateTimeEncoder)
+            divisionData = json.loads(json_data)
+
+
+            #department
+            cursor.execute(f"select * from departments where id= { department_id }")
+            columns = [col[0] for col in cursor.description]
+            rows = []
+            for row in cursor.fetchall():
+                rows.append(dict(zip(columns, row)))
+            json_data = json.dumps(rows, cls=DateTimeEncoder)
+            departmentData = json.loads(json_data)
+
+            #QueryAll
+            userData[0]['branch'] = branchData[0]
+            userData[0]['company'] = companyData[0]
+            userData[0]['employment'] = employmentData[0]
+            userData[0]['division'] = divisionData[0]
+            userData[0]['department'] = departmentData[0]
+
+            return Response(userData, content_type="application/json")
 
 #@method_decorator(permission_required('view_pet'), name='dispatch')
 # class Mypet(APIView):
@@ -152,21 +223,17 @@ class MyBranch(APIView):
         page = request.GET.get('page', 1)
         per_page = request.GET.get('perPage', 10)
         search_query = request.GET.get('search')  # get the search query parameter
-
         with connection.cursor() as cursor:
-            # Calculate the starting index of the current page
             start_index = (int(page) - 1) * int(per_page)
-
-            # Get the total number of rows
-            cursor.execute(f"SELECT COUNT(*) FROM branches WHERE name LIKE '%{search_query}%'")  # modify query to include WHERE clause with search query
+            cursor.execute(f"SELECT COUNT(*) FROM branches WHERE name LIKE '%{search_query}%'")
             total_rows = cursor.fetchone()[0]
-
-            # Execute the SQL query with LIMIT, OFFSET, and WHERE clause to retrieve the current page of data
             cursor.execute(
-                f"SELECT * FROM branches WHERE name LIKE '%{search_query}%' LIMIT {per_page} OFFSET {start_index}")  # modify query to include WHERE clause with search query
-
-            # Fetch the data and return as a list of dictionaries
+                f"SELECT * FROM branches WHERE name LIKE '%{search_query}%' LIMIT {per_page} OFFSET {start_index}")
             data = [dict(zip([column[0] for column in cursor.description], row)) for row in cursor.fetchall()]
-
         return JsonResponse({'rows': data, 'totalRows': total_rows})
+
+class testSAP(APIView):
+    def post(self, request):
+
+        return JsonResponse({"message": ''})
 

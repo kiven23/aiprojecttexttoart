@@ -3,7 +3,8 @@ from .views import hello_world,\
     UserLoginAPIView,\
     CreateUser,\
     Profile, \
-    MyBranch
+    MyBranch,\
+    testSAP
 
 urlpatterns = [
     path('hello', hello_world),
@@ -11,5 +12,6 @@ urlpatterns = [
     path('register', CreateUser.as_view(), name='register'),
     path('profile', Profile.as_view(), name='profile'),
     # path('pets', Mypet.as_view(), name='post'),
-    path('branch', MyBranch.as_view(), name='branches')
+    path('branch', MyBranch.as_view(), name='branches'),
+    path('sap/test', testSAP.as_view(), name='sapapi')
 ]
